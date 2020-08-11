@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab',
+    'cycle_mails'
 ]
 
 MIDDLEWARE = [
@@ -125,3 +127,9 @@ MEDIA_ROOT = '/home/Kurara/envio_reuniones/media'
 MEDIA_URL = '/media/'
 STATIC_ROOT = '/home/Kurara/envio_reuniones/static'
 STATIC_URL = '/static/'
+
+
+CRONJOBS = [
+    # Each 5 minutes
+    ('*/5 * * * *', 'cycle_mails.cron.check_mails_tosend')
+]
