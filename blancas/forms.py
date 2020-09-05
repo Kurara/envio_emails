@@ -7,10 +7,9 @@ logger = logging.getLogger(__name__)
 
 class SearchForm(forms.Form):
     province = forms.ModelChoiceField(
-        queryset=models.Province.objects.all().order_by('name'),
+        queryset=models.Province.objects.all(),
         label="Provincia",
         widget = forms.Select(
-            choices=models.Province.objects.all().values_list('id', 'name'),
             attrs={}
         ),
         to_field_name='name'
