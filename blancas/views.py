@@ -10,12 +10,15 @@ import requests
 import json
 import logging
 from blancas.tools import extract_paginas_blancas, encode_html
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 logger = logging.getLogger(__name__)
 
 
-class MainView(TemplateView):
+class MainView(LoginRequiredMixin, TemplateView):
+    login_url = '/admin/login/'
+    permissions = []
     template_name = 'blancas/index.html'
     form_class = SearchForm
 
