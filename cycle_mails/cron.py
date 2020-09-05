@@ -12,8 +12,12 @@ def check_mails_tosend():
     now = timezone.now()
 
     # Check once send
-    start_hour = datetime.time(now.hour, round((now.minute -5)/10)*10)
-    end_hour = datetime.time(now.hour, round((now.minute +5)/10)*10)
+    minutes_start = round((now.minute -5)/10)*10
+    minutes_end = round((now.minute +5)/10)*10
+    minutes_start = 0 if minutes_start < 0 else minutes_start
+    minutes_end = 59 if minutes_end <= 60 else minutes_end
+    start_hour = datetime.time(now.hour, minutes_start)
+    end_hour = datetime.time(now.hour, minutes_end)
     _once = Crontab.objects.filter(
         recurrence='O',
         week=now.weekday(),
@@ -73,14 +77,19 @@ def prepare_mail(cron):
     logger.info("Sending mail for reunion <{}>...".format(cron.reunion))
 
     content = cron.reunion.content_set.all().first()
-
-    emails = list(map(lambda e: e.name, cron.reunion.emails.all()))
+    emails = list(map(lambda e: e.email, cron.reunion.emails.all()))
 
     if content:
-        send_mail(
+        sent = send_mail(
             content.subject,
             content.body,
-            'andujar@envios_reuniones.es',
+            'Kurarab2p@gmail.com',
             emails,
             fail_silently=False,
         )
+        if sent:
+            logger.info("Email sent")
+            SentDone.objects.create(
+                crontab = cron,
+                last_sent = timezone.now()
+            )

@@ -1,0 +1,13 @@
+{% for number in number_list %}
+<div class="row"  id="contacts_title">
+  <div class="col-sm-3">
+    {{number.name}}
+  </div>
+  <div class="col-sm-3">
+    {{number.telephone}}
+  </div>
+  <div class="col-sm-3">
+    {{number.address}}
+  </div>
+</div>
+{% endfor %}

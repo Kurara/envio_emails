@@ -1,3 +1,6 @@
 Django==2.2
 django-crontab==0.7.1
 mysqlclient==1.4.6
+requests==2.24.0
+BeautifulSoup4==4.9.1
+lxml==4.5.2
