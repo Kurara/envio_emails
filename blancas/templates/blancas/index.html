@@ -28,6 +28,7 @@
         <div class="col-sm-3">
           <a class="btn btn-warning" onclick="abrir_modal('{% url 'search-form' %}')" href="#"><span class="fa fa-search"></span> Buscador</a>
           <a class="btn btn-warning" onclick="clean_data()" href="#"><span class="fa fa-eraser"></span></a>
+          <span id="is_clean" style="visibility: hidden;">no</span>
         </div>
       </div>
     </div>
@@ -51,12 +52,12 @@
 
     <div id="ventana_modal" class="modal fade" role="dialog"></div>
     <script type="text/javascript">
-
         function abrir_modal(url) {
           $("#ventana_modal").load(url, function(){
               $(this).modal('show');
           });
         }
+
         function getAllRecords(current, total, numbers=[]) {
             function getNextRecord(current_record, total, numbers) {
               //console.log('getting records with numbers ', numbers)
@@ -86,18 +87,23 @@
                   $("#progress_bar_container").css('visibility', 'hidden')
                 }
                 if ((current_record != null) && (current_record < total)) {
-                  getNextRecord(current_record, total, _numbers);
+                  if ($("#is_clean").html() == 'no') {
+                    getNextRecord(current_record, total, _numbers);
+                  }
                 }
               })
             }
             if ((current != null) && (current < total)) {
-              $("#progress_bar_container").css('visibility', 'inherit')
-              getNextRecord(current, total, numbers);
+              if ($("#is_clean").html() == 'no') {
+                $("#progress_bar_container").css('visibility', 'inherit')
+                getNextRecord(current, total, numbers);
+              }
             }
         }
 
         function clean_data() {
           console.log("Cleaning data...")
+          $("#progress_bar_container").css('visibility', 'hidden')
           $.ajaxSetup({
             data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
           });
@@ -106,18 +112,21 @@
             type:'POST',
             url: _url,
             data: {
-              'actual_index': 0,
-              'total_index': 0,
+              'actual_index': 1,
+              'total_index': 1,
               'names': '',
               'numbers': [],
               'province': '',
               'city': ''
             }
           }).done(function(data) {
+            // console.log("returned")
+            $("#is_clean").html('yes')
             $("#results").html(data['content']);
             var current_record = data['actual'];
             var total = data['total'];
             var percentage = (current_record/total)*100
+            console.log("percentage ", percentage)
             $("#progress_bar").css('width', percentage+"%")
             if (percentage == 100) {
               $("#progress_bar_container").css('visibility', 'hidden')
@@ -129,6 +138,7 @@
           total = '{{ total_index }}';
           //console.log("actual data ", total)
           //console.log("current data ", current)
+          //console.log("cleaned data ", $("#is_clean").html())
           _url = '{% url 'search-form' %}';
 
           $.ajaxSetup({

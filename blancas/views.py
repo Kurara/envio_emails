@@ -94,7 +94,7 @@ class SearchView(FormView):
                         logger.error("Error calling {}. Code: {}".format(
                             _url,
                             response.status_code
-                        )
+                        ))
                 actual += 1
 
             template = TemplateResponse(
@@ -111,12 +111,25 @@ class SearchView(FormView):
                 'names': names,
                 'numbers': number_list
             })
-        else:            
+        else:
+            if len(json.loads(numbers)) == 0:
+                # There are no numbers so we clean main view data
+                return TemplateResponse(
+                    request,
+                    'blancas/index.html',
+                    {
+                        'actual_index': actual,
+                        'total_index': total,
+                        'names': names,
+                        'province': '',
+                        'city': ''
+                    }
+                )   
             template = TemplateResponse(
                 request,
                 'blancas/table_list.html',
                 {
-                    'number_list': []
+                    'number_list': json.loads(numbers)
                 }
             )
             return JsonResponse({
@@ -124,7 +137,7 @@ class SearchView(FormView):
                 'total': total,
                 'actual': actual,
                 'names': names,
-                'numbers': []
-            })
+                'numbers': json.loads(numbers)
+            })         
 
             
