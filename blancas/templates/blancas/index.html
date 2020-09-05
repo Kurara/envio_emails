@@ -7,6 +7,7 @@
     <title>Busqueda en Paginas Blancas</title>
     <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
     <script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
     <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.css' %}">
     <link rel="stylesheet" href="{% static 'fontawesome/css/all.css' %}">
@@ -32,7 +33,7 @@
         </div>
       </div>
     </div>
-    <div id="contacts" class="container">
+    <div id="contacts" class="container table-responsive">
       <div class="row"  id="contacts_title">
         <div class="col-sm-3">
           Nombre
