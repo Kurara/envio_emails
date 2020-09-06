@@ -148,9 +148,11 @@ def extract_paginas_blancas(html_datas):
                 unicode_address1 = re.sub(
                     r'(\t|\n|\r)+', '', _address.contents[2].strip()
                 )
-                unicode_address2 = re.sub(
-                    r'(\t|\n|\r)+', '', _address.contents[4].strip()
-                )
+                unicode_address2 = ''
+                if len(_address.contents) > 3:
+                    unicode_address2 = re.sub(
+                        r'(\t|\n|\r)+', '', _address.contents[4].strip()
+                    )
                 address = unicode_address1 + ' ' + unicode_address2 
             list_data.append({
                 'name': name,
