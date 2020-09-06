@@ -8,6 +8,9 @@ class Search(models.Model):
     found_surnames = models.CharField(blank=True, default='', max_length=200)
     client_ip = models.CharField(max_length=200)
 
+    def __str__(self):
+        return "{}: {}".format(self.user.username, self.client_ip)
+
 
 class Province(models.Model):
     name = models.CharField(max_length=100)
@@ -18,3 +21,6 @@ class Province(models.Model):
 
 class Surname(models.Model):
     surname = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.surname
