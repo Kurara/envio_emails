@@ -1,0 +1,15 @@
+
+#contacts_title {
+    background-color: #eea236;
+    color: #fff;
+}
+
+#results div.row:nth-child(odd){
+    background-color: #787878;
+    color: #fff;
+}
+
+#results div.row:nth-child(even){
+    background-color: #fff;
+    color: #787878;
+}

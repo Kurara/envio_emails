@@ -117,30 +117,30 @@ class SearchView(FormView):
         else:
             if len(json.loads(numbers)) == 0:
                 # There are no numbers so we clean main view data
-                return TemplateResponse(
+                # return TemplateResponse(
+                #     request,
+                #     'blancas/index.html',
+                #     {
+                #         'actual_index': actual,
+                #         'total_index': total,
+                #         'names': names,
+                #         'province': '',
+                #         'city': ''
+                #     }
+                # )   
+                template = TemplateResponse(
                     request,
-                    'blancas/index.html',
+                    'blancas/table_list.html',
                     {
-                        'actual_index': actual,
-                        'total_index': total,
-                        'names': names,
-                        'province': '',
-                        'city': ''
+                        'number_list': json.loads(numbers)
                     }
-                )   
-            template = TemplateResponse(
-                request,
-                'blancas/table_list.html',
-                {
-                    'number_list': json.loads(numbers)
-                }
-            )
-            return JsonResponse({
-                'content': template.rendered_content,
-                'total': total,
-                'actual': actual,
-                'names': names,
-                'numbers': json.loads(numbers)
-            })         
+                )
+                return JsonResponse({
+                    'content': template.rendered_content,
+                    'total': total,
+                    'actual': actual,
+                    'names': names,
+                    'numbers': json.loads(numbers)
+                })         
 
             
