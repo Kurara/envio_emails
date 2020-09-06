@@ -43,7 +43,7 @@ class MainView(LoginRequiredMixin, TemplateView):
                     'total_index': len(names),
                     'names': names,
                     'province': form.data.get('province'),
-                    'city': form.data.get('province')
+                    'city': form.data.get('city')
                 }
             )
 
