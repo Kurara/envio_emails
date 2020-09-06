@@ -35,16 +35,19 @@ class MainView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
+            _client_ip = request.META.get('REMOTE_ADDR')
+            if 'HTTP_X_REAL_IP' in request.META:
+                _client_ip = request.META.get('HTTP_X_REAL_IP')
             user_searches = Search.objects.filter(
                 user=request.user,
-                client_ip=request.META.get('REMOTE_ADDR')
+                client_ip=_client_ip
             ).first()
             names = list(map(lambda x: x.surname, form.get_names()))
             if not user_searches:
                 Search.objects.create(
                     user=request.user,
                     last_search=timezone.now(),
-                    client_ip=request.META.get('REMOTE_ADDR')
+                    client_ip=_client_ip
                 )
             elif user_searches.last_search:
                 timelapse = user_searches.last_search + timezone.timedelta(
@@ -87,9 +90,12 @@ class SearchView(FormView):
         actual = int(request.POST.get("actual_index", '0'))
         total = int(request.POST.get("total_index", '0'))
         numbers = request.POST.get("numbers", '[]')
+        _client_ip = request.META.get('REMOTE_ADDR')
+        if 'HTTP_X_REAL_IP' in request.META:
+            _client_ip = request.META.get('HTTP_X_REAL_IP')
         user_searches = Search.objects.filter(
             user=request.user,
-            client_ip=request.META.get('REMOTE_ADDR')
+            client_ip=_client_ip
         ).first()
 
         if is_clean:
