@@ -11,6 +11,8 @@ import json
 import logging
 from blancas.tools import extract_paginas_blancas, encode_html
 from django.contrib.auth.mixins import LoginRequiredMixin
+from blancas.models import Search
+from django.utils import timezone
 
 
 logger = logging.getLogger(__name__)
@@ -33,8 +35,20 @@ class MainView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
+            user_searches = Search.objects.filter(user=request.user).first()
             names = list(map(lambda x: x.surname, form.get_names()))
-            # Do assign call...
+            if not user_searches:
+                Search.objects.create(
+                    user=request.user,
+                    last_search=timezone.now()
+                )
+            elif user_searches.last_search:
+                timelapse = user_searches.last_search + timezone.timedelta(
+                    hours=1
+                )
+                if timelapse >= timezone.now():
+                    names = []
+
             return TemplateResponse(
                 request,
                 self.template_name,
@@ -48,6 +62,7 @@ class MainView(LoginRequiredMixin, TemplateView):
             )
 
 
+
 class SearchView(FormView):
     template_name = 'blancas/search.html'
     form_class = SearchForm
@@ -56,15 +71,48 @@ class SearchView(FormView):
     def post(self, request, *args, **kwargs):
         """ Returns a json containing 1. The html to load.
         2. The actual index 3. the total index """
+        is_clean = request.POST.get("clean_data", 'false') == 'true'
         names = request.POST.get("names", '')
         province = request.POST.get("province", '')
         city = request.POST.get("city", '')
         actual = int(request.POST.get("actual_index", '0'))
         total = int(request.POST.get("total_index", '0'))
         numbers = request.POST.get("numbers", '[]')
+        user_searches = Search.objects.filter(user=request.user).first()
+
+        if is_clean:
+            user_searches.last_search = None
+            user_searches.found_surnames = ''
+            user_searches.save()
+
+            template = TemplateResponse(
+                request,
+                'blancas/table_list.html',
+                {
+                    'number_list': json.loads(numbers)
+                }
+            )
+            return JsonResponse({
+                'content': template.rendered_content,
+                'total': total,
+                'actual': actual,
+                'names': names,
+                'numbers': json.loads(numbers)
+            })
+        names_list = names[1:-1].split(', ')
+        if user_searches.found_surnames:
+            new_list = names_list[:]
+            names_list = user_searches.found_surnames.split(', ')
+            names_list.extend(new_list)
+            actual = 0
+            total = len(names_list)
+            user_searches.found_surname = ''
+            user_searches.save()
+
         if actual < total:
+            user_searches.last_search = timezone.now()
+            user_searches.save()
             # Do request
-            names_list = names[1:-1].split(', ')
             number_list = json.loads(numbers)
             for name in names_list[actual: actual+10]:
                 _url = "http://blancas.paginasamarillas.es/jsp/resultados.jsp?ap1={surname}&sec=23&lo={city}&pgpv=1&tbus=0&nomprov={province}&idioma=spa".format(
@@ -84,9 +132,14 @@ class SearchView(FormView):
                 }
                 response = requests.get(_url, headers=headers)
                 if response.status_code == 200:
-                    number_list.extend(
-                        extract_paginas_blancas(response.content.decode())
+                    new_numbers = extract_paginas_blancas(
+                        response.content.decode()
                     )
+                    number_list.extend(
+                        new_numbers
+                    )
+                    for n in new_numbers:
+                        user_searches.found_surnames += name + ', '
                 else:
                     if response.content:
                         logger.error("Error calling {}. Details: {}".format(
@@ -99,6 +152,15 @@ class SearchView(FormView):
                             response.status_code
                         ))
                 actual += 1
+
+            if actual == total:
+                logger.info("Search finished")
+                user_searches.last_search = None
+                list_names = user_searches.found_surnames.split(', ')
+                _ordered_names = list(set(list_names))
+                names = list(filter(lambda l: l!='', _ordered_names))
+                user_searches.found_surnames = ', '.join(names)
+                user_searches.save()
 
             template = TemplateResponse(
                 request,
@@ -115,32 +177,23 @@ class SearchView(FormView):
                 'numbers': number_list
             })
         else:
-            if len(json.loads(numbers)) == 0:
-                # There are no numbers so we clean main view data
-                # return TemplateResponse(
-                #     request,
-                #     'blancas/index.html',
-                #     {
-                #         'actual_index': actual,
-                #         'total_index': total,
-                #         'names': names,
-                #         'province': '',
-                #         'city': ''
-                #     }
-                # )   
-                template = TemplateResponse(
-                    request,
-                    'blancas/table_list.html',
-                    {
-                        'number_list': json.loads(numbers)
-                    }
-                )
-                return JsonResponse({
-                    'content': template.rendered_content,
-                    'total': total,
-                    'actual': actual,
-                    'names': names,
-                    'numbers': json.loads(numbers)
-                })         
+            user_searches.last_search = None
+            user_searches.found_surnames = ''
+            user_searches.save()
+
+            template = TemplateResponse(
+                request,
+                'blancas/table_list.html',
+                {
+                    'number_list': json.loads(numbers)
+                }
+            )
+            return JsonResponse({
+                'content': template.rendered_content,
+                'total': total,
+                'actual': actual,
+                'names': names,
+                'numbers': json.loads(numbers)
+            })         
 
             
