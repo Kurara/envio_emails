@@ -48,6 +48,11 @@ class MainView(LoginRequiredMixin, TemplateView):
                 )
                 if timelapse >= timezone.now():
                     names = []
+                else:
+                    # Reset search data because last search
+                    # has been more than 1 hour ago.
+                    user_searches.found_surnames = ''
+                    user_searches.save()
 
             return TemplateResponse(
                 request,
