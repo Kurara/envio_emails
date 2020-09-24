@@ -79,18 +79,20 @@
                   'city': city
                 }
               }).done(function(data) {
-                $("#results").html(data['content']);
-                var current_record = data['actual'];
-                var total = data['total'];
-                var _numbers = data['numbers'];
-                var percentage = (current_record/total)*100
-                $("#progress_bar").css('width', percentage+"%")
-                if (percentage == 100) {
-                  $("#progress_bar_container").css('visibility', 'hidden')
-                }
-                if ((current_record != null) && (current_record < total)) {
-                  if ($("#is_clean").html() == 'no') {
-                    getNextRecord(current_record, total, _numbers);
+                if ($("#is_clean").html() == 'no') {
+                  $("#results").html(data['content']);
+                  var current_record = data['actual'];
+                  var total = data['total'];
+                  var _numbers = data['numbers'];
+                  var percentage = (current_record/total)*100
+                  $("#progress_bar").css('width', percentage+"%")
+                  if (percentage == 100) {
+                    $("#progress_bar_container").css('visibility', 'hidden')
+                  }
+                  if ((current_record != null) && (current_record < total)) {
+                    //if ($("#is_clean").html() == 'no') {
+                      getNextRecord(current_record, total, _numbers);
+                    //}
                   }
                 }
               })
